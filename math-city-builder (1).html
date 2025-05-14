@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בונה העיר החשבוני</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 0 auto;
+            background-color: #87CEEB; /* שמיים */
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #city-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 300px;
+        }
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #8B4513; /* אדמה */
+        }
+        .city-element {
+            position: absolute;
+            transition: opacity 0.5s ease;
+        }
+        #question-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            width: 300px;
+        }
+        #equation {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #answer-input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        #submit-btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2ecc71;
+        }
+        #progress {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            height: 20px;
+        }
+        .correct {
+            color: #27ae60;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        #restart-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+            display: none;
+        }
+        #restart-btn:hover {
+            background-color: #2980b9;
+        }
+        #completion-message {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>בונה העיר החשבוני</h1>
+        
+        <div id="game-container">
+            <div id="question-container">
+                <p id="equation">8 × 7 = ?</p>
+                <input type="number" id="answer-input" placeholder="תשובה">
+                <button id="submit-btn">בדוק</button>
+            </div>
+            
+            <div id="city-container">
+                <div id="ground"></div>
+                <!-- City elements will be added here via JavaScript -->
+            </div>
+        </div>
+        
+        <div id="progress">שלב: 1/10</div>
+        <div id="feedback"></div>
+        <div id="completion-message">כל הכבוד! השלמת את כל 10 השלבים ובנית עיר מפוארת!</div>
+        <button id="restart-btn">משחק חדש</button>
+    </div>
+    
+    <script>
+        // הוספת השמש והעננים מיד בתחילת המשחק
+        window.addEventListener('DOMContentLoaded', function() {
+            const cityContainer = document.getElementById('city-container');
+            
+            // הוספת שמש
+            const sun = document.createElement('div');
+            sun.className = 'city-element';
+            sun.style.cssText = "width: 60px; height: 60px; background-color: #FFD700; top: 20px; left: 40px; border-radius: 50%;";
+            cityContainer.appendChild(sun);
+            
+            // הוספת עננים
+            const cloud1 = document.createElement('div');
+            cloud1.className = 'city-element';
+            cloud1.style.cssText = "width: 80px; height: 40px; background-color: white; top: 30px; left: 150px; border-radius: 20px;";
+            cityContainer.appendChild(cloud1);
+            
+            const cloud2 = document.createElement('div');
+            cloud2.className = 'city-element';
+            cloud2.style.cssText = "width: 100px; height: 50px; background-color: white; top: 15px; left: 300px; border-radius: 25px;";
+            cityContainer.appendChild(cloud2);
+
+            // הפיכת האלמנטים לגלויים
+            setTimeout(() => {
+                sun.style.opacity = 1;
+                cloud1.style.opacity = 1;
+                cloud2.style.opacity = 1;
+            }, 100);
+        });
+        
+        // מידע על שלבי בניית העיר
+        const cityStages = [
+            { name: "בסיס", elements: [
+                { id: "grass", type: "div", style: "width: 100%; height: 20px; background-color: #7CFC00; bottom: 100px;" }
+            ]},
+            { name: "דרך ראשונה", elements: [
+                { id: "road", type: "div", style: "width: 100%; height: 10px; background-color: #555; bottom: 120px;" }
+            ]},
+            { name: "בית ראשון", elements: [
+                { id: "house1", type: "div", style: "width: 60px; height: 80px; background-color: #F5DEB3; bottom: 130px; left: 100px; border: 1px solid #8B4513;" },
+                { id: "roof1", type: "div", style: "width: 80px; height: 30px; background-color: #CD5C5C; bottom: 210px; left: 90px; transform: perspective(10px) rotateX(5deg);" }
+            ]},
+            { name: "בית שני", elements: [
+                { id: "house2", type: "div", style: "width: 70px; height: 90px; background-color: #FAEBD7; bottom: 130px; left: 240px; border: 1px solid #8B4513;" },
+                { id: "roof2", type: "div", style: "width: 90px; height: 35px; background-color: #8B4513; bottom: 220px; left: 230px; transform: perspective(10px) rotateX(5deg);" }
+            ]},
+            { name: "עץ", elements: [
+                { id: "tree-trunk", type: "div", style: "width: 10px; height: 30px; background-color: #8B4513; bottom: 130px; left: 400px;" },
+                { id: "tree-top", type: "div", style: "width: 40px; height: 50px; background-color: #228B22; bottom: 160px; left: 385px; border-radius: 50%;" }
+            ]},
+            { name: "חנות", elements: [
+                { id: "store", type: "div", style: "width: 100px; height: 70px; background-color: #B0E0E6; bottom: 130px; left: 500px; border: 1px solid #4682B4;" },
+                { id: "store-sign", type: "div", style: "width: 80px; height: 20px; background-color: #FFD700; bottom: 201px; left: 510px;" }
+            ]},
+            { name: "מכונית", elements: [
+                { id: "car", type: "div", style: "width: 60px; height: 25px; background-color: #FF6347; bottom: 125px; left: 350px; border-radius: 5px;" },
+                { id: "car-top", type: "div", style: "width: 30px; height: 15px; background-color: #FF6347; bottom: 150px; left: 365px; border-radius: 5px;" },
+                { id: "car-wheel1", type: "div", style: "width: 12px; height: 12px; background-color: #333; bottom: 120px; left: 355px; border-radius: 50%;" },
+                { id: "car-wheel2", type: "div", style: "width: 12px; height: 12px; background-color: #333; bottom: 120px; left: 395px; border-radius: 50%;" }
+            ]},
+            { name: "בניין גבוה", elements: [
+                { id: "tall-building", type: "div", style: "width: 80px; height: 150px; background-color: #A9A9A9; bottom: 130px; left: 600px; border: 1px solid #696969;" },
+                { id: "windows", type: "div", style: "width: 60px; height: 130px; background-color: #A9A9A9; bottom: 140px; left: 610px; background-image: linear-gradient(90deg, #A9A9A9 50%, #87CEEB 50%); background-size: 20px 20px;" }
+            ]},
+            { name: "פארק", elements: [
+                { id: "park-ground", type: "div", style: "width: 150px; height: 50px; background-color: #7CFC00; bottom: 130px; left: 20px; border-radius: 10px;" },
+                { id: "park-tree1", type: "div", style: "width: 30px; height: 40px; background-color: #228B22; bottom: 180px; left: 40px; border-radius: 50%;" },
+                { id: "park-tree2", type: "div", style: "width: 30px; height: 40px; background-color: #228B22; bottom: 180px; left: 120px; border-radius: 50%;" }
+            ]},
+            { name: "גמר העיר", elements: [
+                { id: "street-light1", type: "div", style: "width: 5px; height: 40px; background-color: #696969; bottom: 130px; left: 200px;" },
+                { id: "street-light-top1", type: "div", style: "width: 15px; height: 10px; background-color: #FFD700; bottom: 170px; left: 195px; border-radius: 50%;" },
+                { id: "street-light2", type: "div", style: "width: 5px; height: 40px; background-color: #696969; bottom: 130px; left: 450px;" },
+                { id: "street-light-top2", type: "div", style: "width: 15px; height: 10px; background-color: #FFD700; bottom: 170px; left: 445px; border-radius: 50%;" }
+            ]}
+        ];
+        
+        // יצירת שאלות חשבון (כפל וחיבור)
+        function generateQuestions() {
+            const questions = [];
+            // 5 שאלות כפל
+            for (let i = 0; i < 5; i++) {
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                questions.push({
+                    equation: `${num1} × ${num2} = ?`,
+                    answer: num1 * num2
+                });
+            }
+            // 5 שאלות חיבור
+            for (let i = 0; i < 5; i++) {
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                questions.push({
+                    equation: `${num1} + ${num2} = ?`,
+                    answer: num1 + num2
+                });
+            }
+            // ערבוב השאלות
+            return shuffleArray(questions);
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        let currentLevel = 0;
+        let questions = generateQuestions();
+        
+        // פונקציה להצגת אלמנטים של העיר בשלב מסוים
+        function displayCityStage(stage) {
+            const cityContainer = document.getElementById('city-container');
+            
+            // הוספת אלמנטים חדשים
+            cityStages[stage].elements.forEach(element => {
+                const newElement = document.createElement(element.type);
+                newElement.id = element.id;
+                newElement.className = 'city-element';
+                newElement.style.cssText = element.style;
+                newElement.style.opacity = 0; // התחל עם שקיפות מלאה
+                cityContainer.appendChild(newElement);
+                
+                // אפקט הופעה
+                setTimeout(() => {
+                    newElement.style.opacity = 1;
+                }, 100);
+            });
+        }
+        
+        // הצגת שאלה נוכחית
+        function displayCurrentQuestion() {
+            const equationElement = document.getElementById('equation');
+            equationElement.textContent = questions[currentLevel].equation;
+            
+            const progressElement = document.getElementById('progress');
+            progressElement.textContent = `שלב: ${currentLevel + 1}/10`;
+            
+            // איפוס שדה התשובה והמשוב
+            document.getElementById('answer-input').value = '';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = '';
+        }
+        
+        // בדיקת תשובה
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer-input').value);
+            const correctAnswer = questions[currentLevel].answer;
+            const feedbackElement = document.getElementById('feedback');
+            
+            if (userAnswer === correctAnswer) {
+                feedbackElement.textContent = 'נכון! העיר מתפתחת...';
+                feedbackElement.className = 'correct';
+                
+                // הצגת שלב חדש בעיר
+                displayCityStage(currentLevel);
+                
+                // התקדמות לשלב הבא
+                currentLevel++;
+                
+                // בדיקה אם המשחק הסתיים
+                if (currentLevel === 10) {
+                    document.getElementById('question-container').style.display = 'none';
+                    document.getElementById('completion-message').style.display = 'block';
+                    document.getElementById('restart-btn').style.display = 'inline-block';
+                    document.getElementById('progress').textContent = `שלב: 10/10 (הושלם!)`;
+                } else {
+                    // הצגת השאלה הבאה
+                    setTimeout(displayCurrentQuestion, 1500);
+                }
+            } else {
+                feedbackElement.textContent = 'לא נכון, נסה שוב.';
+                feedbackElement.className = 'incorrect';
+            }
+        }
+        
+        // אתחול המשחק מחדש
+        function restartGame() {
+            // הסרת כל אלמנטי העיר למעט השמש והעננים
+            const cityElements = document.querySelectorAll('.city-element');
+            cityElements.forEach(element => {
+                // לא להסיר את השמש והעננים
+                if (!element.style.cssText.includes("top:") && 
+                    !element.style.cssText.includes("top: ")) {
+                    element.remove();
+                }
+            });
+            
+            // איפוס משתנים
+            currentLevel = 0;
+            questions = generateQuestions();
+            
+            // הצגת ממשק המשחק מחדש
+            document.getElementById('question-container').style.display = 'block';
+            document.getElementById('completion-message').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'none';
+            
+            // הצגת השאלה הראשונה
+            displayCurrentQuestion();
+        }
+        
+        // אירועים
+        document.getElementById('submit-btn').addEventListener('click', checkAnswer);
+        document.getElementById('answer-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+        document.getElementById('restart-btn').addEventListener('click', restartGame);
+        
+        // התחלת המשחק
+        displayCurrentQuestion();
+    </script>
+</body>
+</html>
